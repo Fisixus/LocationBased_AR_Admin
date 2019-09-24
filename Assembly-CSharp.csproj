@@ -595,6 +595,7 @@
     <Compile Include="Assets\Mapbox SDK\UnityARKitPlugin\Plugins\iOS\UnityARKit\NativeInterface\ARUserAnchor.cs" />
     <Compile Include="Assets\Mapbox SDK\UnityARKitPlugin\Plugins\iOS\UnityARKit\NativeInterface\UnityARSessionNativeInterface.cs" />
     <Compile Include="Assets\Mapbox SDK\UnityARKitPlugin\UnityARKitPluginSettings.cs" />
+    <Compile Include="Assets\Scripts\CameraManager.cs" />
     <Compile Include="Assets\Scripts\UIManager.cs" />
     <None Include="Assets\Mapbox SDK\Mapbox\Unity\Location\ExampleGpsTraces\LocationProviderAndroidNative.txt" />
     <None Include="Assets\Mapbox SDK\UnityARInterface\Examples\Common\Shaders\MobileOcclusion.shader" />
