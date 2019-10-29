@@ -1,0 +1,287 @@
+﻿using Mapbox.Unity.Map;
+using Mapbox.Utils;
+using Newtonsoft.Json;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Globalization;
+using TMPro;
+using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
+
+public class SymbolManager : MonoBehaviour
+{
+    public static SymbolManager Instance;
+    public List<Texture> textureList;
+    public AbstractMap mapManager;
+
+    public GameObject symbolImage;
+
+    public GameObject addSymbolPanelPreb;
+    public Canvas canvas;
+
+    GameObject addSymbolPanel = null;
+    private EventSystem m_EventSystem;
+    private PointerEventData m_PointerEventData;
+    private GraphicRaycaster m_Raycaster;
+    private List<RaycastResult> UIResults = new List<RaycastResult>();
+
+    private bool addSymbolPanelOpen = false;
+
+    public void setAddSymbolPanelOpen(bool value)
+    {
+        addSymbolPanelOpen = value;
+    }
+
+    public bool getAddSymbolPanelOpen()
+    {
+        return addSymbolPanelOpen;
+    }
+
+    private void Awake()
+    {
+        Instance = this;
+    }
+
+    private void Start()
+    {
+        m_Raycaster = canvas.GetComponent<GraphicRaycaster>();
+        m_PointerEventData = new PointerEventData(m_EventSystem);
+    }
+
+    private void LateUpdate()
+    {
+        MoveAddSymbolPanel();
+    }
+
+    private void MoveAddSymbolPanel()
+    {
+        if (!addSymbolPanelOpen) return;
+#if UNITY_EDITOR || UNITY_STANDALONE_WIN
+        if (Input.GetMouseButton(0))
+#elif (UNITY_IOS || UNITY_ANDROID) && !UNITY_EDITOR
+        if (Input.touchCount == 1 && Input.GetTouch(0).phase == TouchPhase.Moved)
+#endif
+        {
+            m_PointerEventData.position = Input.mousePosition;
+            m_Raycaster.Raycast(m_PointerEventData, UIResults);
+            for (int i = 0; i < UIResults.Count; i++)
+            {
+                    Debug.Log("Name:" + UIResults[i].gameObject.name);
+                if (UIResults[i].gameObject.name.Equals("MovePanel"))
+                {
+                    addSymbolPanel.transform.position = Input.mousePosition;
+                }
+            }
+        }
+#if UNITY_EDITOR || UNITY_STANDALONE_WIN
+        if (Input.GetMouseButtonUp(0))
+#elif (UNITY_IOS || UNITY_ANDROID) && !UNITY_EDITOR
+        if (Input.touches[0].phase == TouchPhase.Ended)
+#endif
+        {
+            UIResults.Clear();
+        }
+    }
+
+    public void CreateSymbolImageOnMap(Symbol symbol)
+    {
+        switch (symbol.Category)
+        {
+            case Category.Ambulance:
+                SetImage(symbol, 0);                
+                break;
+            case Category.Barrier:
+                SetImage(symbol, 1);
+                break;
+            case Category.Blast:
+                SetImage(symbol, 2);
+                break;
+            case Category.Bomb:
+                SetImage(symbol, 3);
+                break;
+            case Category.Car:
+                SetImage(symbol, 4);
+                break;
+            case Category.Construction:
+                SetImage(symbol, 5);
+                break;
+            case Category.Ditch:
+                SetImage(symbol, 6);
+                break;
+            case Category.Fire:
+                SetImage(symbol, 7);
+                break;
+            case Category.Firstaid:
+                SetImage(symbol, 8);
+                break;
+            case Category.Hunting:
+                SetImage(symbol, 9);
+                break;
+            case Category.Male:
+                SetImage(symbol, 10);
+                break;
+            case Category.Office_building:
+                SetImage(symbol, 11);
+                break;
+            case Category.Police:
+                SetImage(symbol, 12);
+                break;
+            case Category.Soldier:
+                SetImage(symbol, 13);
+                break;
+            case Category.Traffic_light:
+                SetImage(symbol, 14);
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void SetImage(Symbol symbol, int textureNo)
+    {
+        
+        symbolImage.GetComponentInChildren<RawImage>().texture = textureList[textureNo];
+        GameObject image = Instantiate(symbolImage, mapManager.GeoToWorldPosition(new Vector2d((double)symbol.Latitude, (double)symbol.Longitude), true), Quaternion.identity);
+        image.name = symbol.SymbolName;
+        image.tag = "SymbolImage";
+    }
+    
+    public void AddSymbol()
+    {
+        
+#if UNITY_EDITOR || UNITY_STANDALONE_WIN
+        if (Input.GetMouseButtonUp(0))
+#elif (UNITY_IOS || UNITY_ANDROID) && !UNITY_EDITOR
+        if (Input.touchCount == 0 && Input.GetTouch(0).phase == TouchPhase.Ended)
+#endif
+        {
+            addSymbolPanel = Instantiate(addSymbolPanelPreb, CameraManager.Instance.getMousePos(), Quaternion.identity, canvas.transform);
+            addSymbolPanel.name = "AddSymbol";
+
+            addSymbolPanel.transform.GetChild(0).GetComponent<Button>().onClick.AddListener(CloseAddSymbolAction);
+            addSymbolPanel.transform.GetChild(1).GetComponentInChildren<Button>().onClick.AddListener(AddSymbolAction);
+
+            //This is for filling lat lot values automatically
+            addSymbolPanel.transform.Find("ScrollView/ContentPanel/LatitudeDATA").GetComponent<InputField>().text = CameraManager.Instance.getLatitude().ToString();
+            addSymbolPanel.transform.Find("ScrollView/ContentPanel/LongitudeDATA").GetComponent<InputField>().text = CameraManager.Instance.getLongitude().ToString();
+            addSymbolPanel.transform.Find("ScrollView/ContentPanel/AltitudeDATA").GetComponent<InputField>().text = "0.0";
+
+            FillUserDropdown();
+            addSymbolPanelOpen = true;
+        }
+
+    }
+
+    private void FillUserDropdown()
+    {
+        string data = WebServiceManager.Instance.getAllUserData();
+        List<User> allUsers = JsonConvert.DeserializeObject<List<User>>(data);
+        TMP_Dropdown symbolOwnerDropdown = addSymbolPanel.transform.Find("ScrollView/ContentPanel/SymbolOwnerDATA").GetComponent<TMP_Dropdown>();
+        symbolOwnerDropdown.options.Clear();
+        foreach(User user in allUsers)
+        {
+            if(user.Role == Role.Standart)
+                symbolOwnerDropdown.options.Add(new TMP_Dropdown.OptionData() { text = user.Username });
+        }
+    }
+
+    public void AddSymbolAction()
+    {
+        Category category;
+        decimal result;
+
+        string symbolNameDATA = addSymbolPanel.transform.Find("ScrollView/ContentPanel/SymbolNameDATA").GetComponentInChildren<Text>().text.Trim();
+        //TODO geo info must writed automatically by WorldToGeoPosition method
+        string latitudeDATA = addSymbolPanel.transform.Find("ScrollView/ContentPanel/LatitudeDATA").GetComponentInChildren<Text>().text.Trim();
+        string longitudeDATA = addSymbolPanel.transform.Find("ScrollView/ContentPanel/LongitudeDATA").GetComponentInChildren<Text>().text.Trim();
+        string altitudeDATA = addSymbolPanel.transform.Find("ScrollView/ContentPanel/AltitudeDATA").GetComponentInChildren<Text>().text.Trim();
+        string messageDATA = addSymbolPanel.transform.Find("ScrollView/ContentPanel/MessageDATA").GetComponentInChildren<Text>().text.Trim();
+
+        TMP_Dropdown categoryDrowdown = addSymbolPanel.transform.Find("ScrollView/ContentPanel/CategoryDATA").GetComponent<TMP_Dropdown>();
+        string categoryDATA = categoryDrowdown.options[categoryDrowdown.value].text;
+
+        //TODO This would be multi selected dropbox for the multiple assigns
+        TMP_Dropdown symbolOwnerDropdown = addSymbolPanel.transform.Find("ScrollView/ContentPanel/SymbolOwnerDATA").GetComponent<TMP_Dropdown>();
+        string symbolOwnerDATA = symbolOwnerDropdown.options[symbolOwnerDropdown.value].text;
+
+
+        bool nameIsValid = true;
+        string data = WebServiceManager.Instance.getAllSymbolsData();
+        List<Symbol> allSymbols = JsonConvert.DeserializeObject<List<Symbol>>(data);
+
+        //List<User> selectedUsers = new List<User>();
+        User dataUser = null;
+        data = WebServiceManager.Instance.getAllUserData();
+        List<User> allUsers = JsonConvert.DeserializeObject<List<User>>(data);
+
+        foreach(User user in allUsers)
+        {
+            if (user.Username.Equals(symbolOwnerDATA))
+            {
+                //TODO dataUser should be list of selected users
+                dataUser = user;
+                break;
+            }
+        }
+
+        List<string> userSymbolNames = new List<string>();
+        foreach (string symbolUUID in dataUser.SymbolUUIDs)
+        {
+            foreach(Symbol s in allSymbols)
+            {
+                if (s.UserUUID.Equals(symbolUUID))
+                {
+                    userSymbolNames.Add(s.SymbolName);
+                }
+            }
+
+        }
+
+        for(int i=0; i < userSymbolNames.Count; i++)
+        {
+            if (userSymbolNames[i].ToLower().Equals(symbolNameDATA.ToLower()))
+            {
+                nameIsValid = false;
+                break;
+            }
+
+        }
+
+        bool postControl = (decimal.TryParse(longitudeDATA.ToString().Trim(), out result)) && (decimal.TryParse(latitudeDATA.ToString().Trim(), out result)) && (decimal.TryParse(altitudeDATA.ToString().Trim(), out result)) && (Enum.TryParse(categoryDATA, out category)) && (nameIsValid) && (symbolNameDATA != null);
+
+        if (postControl)
+        {
+            Symbol symbol = new Symbol();
+            //TODO For every selected user
+            symbol.SymbolName = symbolNameDATA;
+            symbol.Latitude = decimal.Parse(latitudeDATA, CultureInfo.InvariantCulture.NumberFormat);
+            symbol.Longitude = decimal.Parse(longitudeDATA, CultureInfo.InvariantCulture.NumberFormat);
+            symbol.Altitude = decimal.Parse(altitudeDATA, CultureInfo.InvariantCulture.NumberFormat);
+            symbol.Category = (Category)Enum.Parse(typeof(Category), categoryDATA);
+            symbol.Message = messageDATA;
+
+            WebServiceManager.Instance.AddSymbol(symbol);
+            CloseAddSymbolAction();
+        }
+
+        else
+        {
+            Debug.Log("This request is not eligible!");
+        }
+
+    }
+
+    public void CloseAddSymbolAction()
+    {
+        Destroy(GameObject.Find("/Canvas/AddSymbol"));
+        addSymbolPanelOpen = false;
+        CameraManager.Instance.NavigateMode();
+    }
+
+    public void DeleteSymbol()
+    {
+
+    }
+}

@@ -57,9 +57,9 @@ namespace GoogleARCoreInternal
 
             Debug.LogFormat("Building application with {0} ARCore support.",
                 isARCoreRequired ? "REQUIRED" : "OPTIONAL");
-
-            const string k_RequiredAARPath = "Assets/GoogleARCore/SDK/Plugins/google_ar_required.aar";
-            const string k_OptionalAARPath = "Assets/GoogleARCore/SDK/Plugins/google_ar_optional.aar";
+            
+            const string k_RequiredAARPath = "Assets/Mapbox SDK/GoogleARCore/SDK/Plugins/google_ar_required.aar";
+            const string k_OptionalAARPath = "Assets/Mapbox SDK/GoogleARCore/SDK/Plugins/google_ar_optional.aar";
             PluginImporter arRequiredAAR = AssetImporter.GetAtPath(k_RequiredAARPath) as PluginImporter;
             PluginImporter arOptionalAAR = AssetImporter.GetAtPath(k_OptionalAARPath) as PluginImporter;
 

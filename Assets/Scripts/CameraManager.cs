@@ -1,47 +1,159 @@
-﻿using System.Collections;
+﻿using Mapbox.Unity.Map;
+using Mapbox.Utils;
+using System;
+using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class CameraManager : MonoBehaviour
 {
+    public static CameraManager Instance;
 
     public float moveSpeedPerPixel = 0.05f;
+    public float moveSpeedPerPixelForAndroid = 1000f;
     public float rotationSpeedPerPixel = 0.05f;
     public float zoomSpeedPerWheel = 0.75f;
-    public Vector3 distance;
+    public float zoomSpeedPerWheelForAndroid = 200f;
+    public float zoomMinDistance = 25f;
+    public float zoomMaxDistance = 200f;
+    public Canvas canvas;
+    public TextMeshProUGUI LatLotMouse;
+    public AbstractMap mapManager;
 
     public float speedH = 2.0f;
     public float speedV = 2.0f;
 
     private float yaw = 0.0f;
     private float pitch = 45.0f;
+    private EventSystem m_EventSystem;
+    private PointerEventData m_PointerEventData;
+    private GraphicRaycaster m_Raycaster;
+    private List<RaycastResult> UIResults = new List<RaycastResult>();
 
-    private float dz = 1.0f; 
+    bool addSymbolMode = false;
+    bool navigateMode = true;
+    Vector3 mousePos = Vector3.zero;
+    decimal latitude = 0m;
+    decimal longitude = 0m;
 
-    void Start()
+    private void Awake()
     {
-        transform.position = distance;
-
-        //TODO ALL ile baslasin
+        Instance = this;
     }
 
+    public Vector3 getMousePos()
+    {
+        return mousePos;
+    }
+
+    public decimal getLatitude()
+    {
+        return latitude;
+    }
+
+    public decimal getLongitude()
+    {
+        return longitude;
+    }
+
+    void Start()
+    {        
+        NavigateMode();
+        m_Raycaster = canvas.GetComponent<GraphicRaycaster>();
+        m_PointerEventData = new PointerEventData(m_EventSystem);
+    }
+
+    private bool ClickOnUI()
+    {
+#if UNITY_EDITOR || UNITY_STANDALONE_WIN
+        if (Input.GetMouseButton(0))
+#elif (UNITY_IOS || UNITY_ANDROID) && !UNITY_EDITOR
+        if (Input.touchCount == 1 && Input.GetTouch(0).phase == TouchPhase.Moved)
+#endif
+        {            
+            m_PointerEventData.position = Input.mousePosition;
+            m_Raycaster.Raycast(m_PointerEventData, UIResults);
+            return UIResults.Count > 0;
+        }
+#if UNITY_EDITOR || UNITY_STANDALONE_WIN
+        if (Input.GetMouseButtonUp(0))
+#elif (UNITY_IOS || UNITY_ANDROID) && !UNITY_EDITOR
+        if (Input.touches[0].phase == TouchPhase.Ended)
+#endif
+        {
+            UIResults.Clear();
+            m_PointerEventData.position = Input.mousePosition;
+            m_Raycaster.Raycast(m_PointerEventData, UIResults);
+            return UIResults.Count > 0;
+        }
+        return false;
+    }
 
     void LateUpdate()
     {
+        FindMouseLocationLatLot();
+        ///Stop camera options when the panel is open
+        if (SymbolManager.Instance.getAddSymbolPanelOpen())
+        {
+            ZoomCam();
+            return;
+        }
+        
+        if (ClickOnUI())
+        {                        
+            Debug.Log("UICLICK!!!");
+            return;
+
+        }
+        
+        if (navigateMode)
+        {
+            NavigateCam();
+        }
+        else if (addSymbolMode)
+        {                        
+            SymbolManager.Instance.AddSymbol();
+        }
+        
+    }
+
+    private void NavigateCam()
+    {
+        PanCam();
+        RotateCam();
+        ZoomCam();        
+    }
+
+    private void PanCam()
+    {
+#if UNITY_EDITOR || UNITY_STANDALONE_WIN
         // For moving on camera with left click
         if (Input.GetMouseButton(0))
         {
+            Vector3 dy = transform.forward * Input.GetAxis("Mouse Y") * moveSpeedPerPixel * transform.position.y * 2;
+            Vector3 dx = transform.right * Input.GetAxis("Mouse X") * moveSpeedPerPixel * transform.position.y;
+#elif (UNITY_IOS || UNITY_ANDROID) && !UNITY_EDITOR
+        if (Input.touchCount == 1 && Input.GetTouch(0).phase == TouchPhase.Moved) {
+            Vector3 dy = transform.forward * Input.touches[0].deltaPosition.y * transform.position.y / moveSpeedPerPixelForAndroid;
+            Vector3 dx = transform.right * Input.touches[0].deltaPosition.x  * transform.position.y / moveSpeedPerPixelForAndroid;
+#endif
             Vector3 dz = Vector3.zero;
-            Vector3 dy = transform.forward * Input.GetAxis("Mouse Y") * moveSpeedPerPixel * distance.y * 2;
-            //Debug.Log("dy:" + dy);
-            dz = new Vector3(0.0f, dy.y, 0.0f);           
-            Vector3 dx = transform.right * Input.GetAxis("Mouse X") * moveSpeedPerPixel * distance.y;
+            dz = new Vector3(0.0f, dy.y, 0.0f);
+            //Debug.Log("dy:" + dy);            
             //Debug.Log("dx:" + dx);
             transform.position -= dx + dy - dz;
-            
         }
+    }
+
+    private void RotateCam()
+    {
         // For rotating the camera with right click
+#if UNITY_EDITOR || UNITY_STANDALONE_WIN
         if (Input.GetMouseButton(1))
+
         {
             yaw += speedH * Input.GetAxis("Mouse X");
             pitch -= speedV * Input.GetAxis("Mouse Y");
@@ -49,9 +161,64 @@ public class CameraManager : MonoBehaviour
             transform.eulerAngles = new Vector3(pitch, yaw, 0.0f);
         }
 
+#elif (UNITY_IOS || UNITY_ANDROID) && !UNITY_EDITOR
+        //Rotate For Android/IOS
+#endif
+    }
+
+    private void ZoomCam()
+    {
         // For zooming in and out
-        distance.y *= (1 - Input.GetAxis("Mouse ScrollWheel") * zoomSpeedPerWheel);
-        distance.y = Mathf.Clamp(distance.y, 50, 200);
-        transform.position = new Vector3(transform.position.x, distance.y, transform.position.z);
+#if UNITY_EDITOR || UNITY_STANDALONE_WIN
+        transform.position = new Vector3(transform.position.x, transform.position.y * (1 - Input.GetAxis("Mouse ScrollWheel") * zoomSpeedPerWheel), transform.position.z);
+#elif (UNITY_IOS || UNITY_ANDROID) && !UNITY_EDITOR
+        if(Input.touchCount == 2 && Input.GetTouch(0).phase == TouchPhase.Moved && Input.GetTouch(1).phase == TouchPhase.Moved)
+        {
+            Touch touchZero = Input.GetTouch(0);
+            Touch touchOne = Input.GetTouch(1);
+            Vector2 touchZeroPrevPos = touchZero.position - touchZero.deltaPosition;
+            Vector2 touchOnePrevPos = touchOne.position - touchOne.deltaPosition;
+            float prevMagnitude = (touchZeroPrevPos - touchOnePrevPos).magnitude;
+            float currentMagnitude = (touchZero.position - touchOne.position).magnitude;
+            float difference = currentMagnitude - prevMagnitude;
+            transform.position = new Vector3(transform.position.x, transform.position.y * (1 - difference / zoomSpeedPerWheelForAndroid), transform.position.z);
+        }        
+#endif
+        var pos = transform.position;
+        pos.y = Mathf.Clamp(transform.position.y, zoomMinDistance, zoomMaxDistance);
+        transform.position = pos;
+        transform.position = new Vector3(transform.position.x, transform.position.y, transform.position.z);
+    }
+    
+    private void FindMouseLocationLatLot()
+    {
+        mousePos = Input.mousePosition;
+        Vector3 mousePosLatLot = mousePos;
+        mousePosLatLot.z = 10.0f;
+        mousePosLatLot = Camera.main.ScreenToWorldPoint(mousePosLatLot);
+        Vector2d LatLot = mapManager.WorldToGeoPosition(mousePosLatLot);
+        latitude = (decimal)LatLot.x;
+        latitude = Math.Truncate(latitude * 100000000000m) / 100000000000m;
+        longitude = (decimal)LatLot.y;
+        longitude = Math.Truncate(longitude * 100000000000m) / 100000000000m;
+        LatLotMouse.text = latitude + ", " + longitude;
+    }
+
+
+
+    public void AddSymbolMode()
+    {
+        GameObject gObj = GameObject.Find("/Canvas/AddOrNavigate/Add");
+        ColorUtilityManager.Instance.SetColorofCamMobilityButtons(gObj);
+        addSymbolMode = true;
+        navigateMode = false;
+    }
+
+    public void NavigateMode()
+    {
+        GameObject gObj = GameObject.Find("/Canvas/AddOrNavigate/Navigate");
+        ColorUtilityManager.Instance.SetColorofCamMobilityButtons(gObj);
+        addSymbolMode = false;
+        navigateMode = true;        
     }
 }
