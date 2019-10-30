@@ -19,8 +19,8 @@ public class UIManager : MonoBehaviour
     public GameObject onlineUserButton;
     public GameObject userAvatar;
     public AbstractMap mapManager;
-    public Text LatText;
-    public Text LotText;
+    public GameObject LatInputField;
+    public GameObject LotInputField;
 
     #region USER INFO PANEL
     public GameObject UserInfo;
@@ -78,7 +78,7 @@ public class UIManager : MonoBehaviour
                 RefreshUserInfo();
             }
             /// For refreshing user info                
-            if (UserInfo.activeSelf && selectedUser != null)
+            if (selectedUser != null)
             {
                 if (user.Username.Equals(UsernameData.text))
                 {
@@ -89,7 +89,7 @@ public class UIManager : MonoBehaviour
             }
 
             /// For refreshing symbol info                
-            if (SymbolInfo.activeSelf && selectedSymbol != null)
+            if (selectedSymbol != null)
             {
                 if (user.Username.Equals(UsernameData.text))
                 {
@@ -235,13 +235,13 @@ public class UIManager : MonoBehaviour
         decimal result = 0m;
         decimal Lot = 0m; 
         decimal Lat = 0m;
-        if (decimal.TryParse(LotText.text.ToString(), out result))
+        if (decimal.TryParse(LatInputField.GetComponent<InputField>().text.ToString(), out result))
         {
-            Lot = decimal.Parse(LotText.text.Trim(), CultureInfo.InvariantCulture.NumberFormat);
+            Lat = decimal.Parse(LatInputField.GetComponent<InputField>().text.ToString().Trim(), CultureInfo.InvariantCulture.NumberFormat);
         }
-        if (decimal.TryParse(LatText.text.ToString(), out result))
+        if (decimal.TryParse(LotInputField.GetComponent<InputField>().text.ToString().ToString(), out result))
         {
-            Lat = decimal.Parse(LatText.text.Trim(), CultureInfo.InvariantCulture.NumberFormat);
+            Lot = decimal.Parse(LotInputField.GetComponent<InputField>().text.Trim(), CultureInfo.InvariantCulture.NumberFormat);
         }
         if(Lot != 0m && Lat != 0m)
         {

@@ -56,7 +56,7 @@ public class ColorUtilityManager : MonoBehaviour
         }
         return color;
     }
-
+    //Not working completely true because of the prefab problems
     public void SetColorofAvatars(User selectedUser)
     {
         GameObject[] userAvatars = GameObject.FindGameObjectsWithTag("UserAvatar");

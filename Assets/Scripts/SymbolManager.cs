@@ -19,9 +19,10 @@ public class SymbolManager : MonoBehaviour
     public GameObject symbolImage;
 
     public GameObject addSymbolPanelPreb;
+    public GameObject addSymbolMarker;
     public Canvas canvas;
 
-    GameObject addSymbolPanel = null;
+    private GameObject addSymbolPanel;
     private EventSystem m_EventSystem;
     private PointerEventData m_PointerEventData;
     private GraphicRaycaster m_Raycaster;
@@ -68,7 +69,7 @@ public class SymbolManager : MonoBehaviour
             m_Raycaster.Raycast(m_PointerEventData, UIResults);
             for (int i = 0; i < UIResults.Count; i++)
             {
-                    Debug.Log("Name:" + UIResults[i].gameObject.name);
+                //Debug.Log("Name:" + UIResults[i].gameObject.name);
                 if (UIResults[i].gameObject.name.Equals("MovePanel"))
                 {
                     addSymbolPanel.transform.position = Input.mousePosition;
@@ -150,15 +151,19 @@ public class SymbolManager : MonoBehaviour
     
     public void AddSymbol()
     {
-        
+        addSymbolMarker.transform.position = Input.mousePosition;
+
 #if UNITY_EDITOR || UNITY_STANDALONE_WIN
         if (Input.GetMouseButtonUp(0))
 #elif (UNITY_IOS || UNITY_ANDROID) && !UNITY_EDITOR
         if (Input.touchCount == 0 && Input.GetTouch(0).phase == TouchPhase.Ended)
 #endif
         {
-            addSymbolPanel = Instantiate(addSymbolPanelPreb, CameraManager.Instance.getMousePos(), Quaternion.identity, canvas.transform);
-            addSymbolPanel.name = "AddSymbol";
+            addSymbolMarker.SetActive(false);
+
+            addSymbolPanel = Instantiate(addSymbolPanelPreb, Input.mousePosition, Quaternion.identity, canvas.transform);
+            addSymbolPanel.name = "AddSymbolPanel";
+
 
             addSymbolPanel.transform.GetChild(0).GetComponent<Button>().onClick.AddListener(CloseAddSymbolAction);
             addSymbolPanel.transform.GetChild(1).GetComponentInChildren<Button>().onClick.AddListener(AddSymbolAction);
@@ -192,12 +197,12 @@ public class SymbolManager : MonoBehaviour
         Category category;
         decimal result;
 
-        string symbolNameDATA = addSymbolPanel.transform.Find("ScrollView/ContentPanel/SymbolNameDATA").GetComponentInChildren<Text>().text.Trim();
+        string symbolNameDATA = addSymbolPanel.transform.Find("ScrollView/ContentPanel/SymbolNameDATA").GetComponent<InputField>().text.Trim();
         //TODO geo info must writed automatically by WorldToGeoPosition method
-        string latitudeDATA = addSymbolPanel.transform.Find("ScrollView/ContentPanel/LatitudeDATA").GetComponentInChildren<Text>().text.Trim();
-        string longitudeDATA = addSymbolPanel.transform.Find("ScrollView/ContentPanel/LongitudeDATA").GetComponentInChildren<Text>().text.Trim();
-        string altitudeDATA = addSymbolPanel.transform.Find("ScrollView/ContentPanel/AltitudeDATA").GetComponentInChildren<Text>().text.Trim();
-        string messageDATA = addSymbolPanel.transform.Find("ScrollView/ContentPanel/MessageDATA").GetComponentInChildren<Text>().text.Trim();
+        string latitudeDATA = addSymbolPanel.transform.Find("ScrollView/ContentPanel/LatitudeDATA").GetComponent<InputField>().text.Trim();
+        string longitudeDATA = addSymbolPanel.transform.Find("ScrollView/ContentPanel/LongitudeDATA").GetComponent<InputField>().text.Trim();
+        string altitudeDATA = addSymbolPanel.transform.Find("ScrollView/ContentPanel/AltitudeDATA").GetComponent<InputField>().text.Trim();
+        string messageDATA = addSymbolPanel.transform.Find("ScrollView/ContentPanel/MessageDATA").GetComponentInChildren<TMP_InputField>().text.Trim();
 
         TMP_Dropdown categoryDrowdown = addSymbolPanel.transform.Find("ScrollView/ContentPanel/CategoryDATA").GetComponent<TMP_Dropdown>();
         string categoryDATA = categoryDrowdown.options[categoryDrowdown.value].text;
@@ -250,18 +255,30 @@ public class SymbolManager : MonoBehaviour
         }
 
         bool postControl = (decimal.TryParse(longitudeDATA.ToString().Trim(), out result)) && (decimal.TryParse(latitudeDATA.ToString().Trim(), out result)) && (decimal.TryParse(altitudeDATA.ToString().Trim(), out result)) && (Enum.TryParse(categoryDATA, out category)) && (nameIsValid) && (symbolNameDATA != null);
-
+        /*
+        Debug.Log("longControl:" + (decimal.TryParse(longitudeDATA.ToString().Trim(), out result)));
+        Debug.Log("latControl:" + (decimal.TryParse(latitudeDATA.ToString().Trim(), out result)));
+        Debug.Log("altControl:" + (decimal.TryParse(altitudeDATA.ToString().Trim(), out result)));
+        Debug.Log("categoryControl:" + (Enum.TryParse(categoryDATA, out category)));
+        Debug.Log("NameNull:" + (symbolNameDATA != null));
+        Debug.Log("NameValid:" + (nameIsValid));
+        */
         if (postControl)
         {
             Symbol symbol = new Symbol();
             //TODO For every selected user
             symbol.SymbolName = symbolNameDATA;
-            symbol.Latitude = decimal.Parse(latitudeDATA, CultureInfo.InvariantCulture.NumberFormat);
-            symbol.Longitude = decimal.Parse(longitudeDATA, CultureInfo.InvariantCulture.NumberFormat);
-            symbol.Altitude = decimal.Parse(altitudeDATA, CultureInfo.InvariantCulture.NumberFormat);
+            Debug.Log("SymbolName:" + symbolNameDATA);
+            symbol.Latitude = decimal.Parse(latitudeDATA.Replace(',','.'), CultureInfo.InvariantCulture.NumberFormat);
+            Debug.Log("LatData:" + latitudeDATA);
+            symbol.Longitude = decimal.Parse(longitudeDATA.Replace(',','.'), CultureInfo.InvariantCulture.NumberFormat);
+            Debug.Log("LongData:" + longitudeDATA);
+            symbol.Altitude = decimal.Parse(altitudeDATA.Replace(',', '.'), CultureInfo.InvariantCulture.NumberFormat);
             symbol.Category = (Category)Enum.Parse(typeof(Category), categoryDATA);
             symbol.Message = messageDATA;
-
+            Debug.Log("SymbolOwner:" + symbolOwnerDATA);
+            symbol.UserUUID = UserManager.Instance.FindUserUUIDbyUsername(symbolOwnerDATA);
+            Debug.Log("UserUUID:" + symbol.UserUUID);
             WebServiceManager.Instance.AddSymbol(symbol);
             CloseAddSymbolAction();
         }
@@ -273,9 +290,15 @@ public class SymbolManager : MonoBehaviour
 
     }
 
+    public void ActivateMarker()
+    {
+        addSymbolMarker.transform.position = Input.mousePosition;        
+        addSymbolMarker.SetActive(true);
+    }
+
     public void CloseAddSymbolAction()
     {
-        Destroy(GameObject.Find("/Canvas/AddSymbol"));
+        Destroy(addSymbolPanel);
         addSymbolPanelOpen = false;
         CameraManager.Instance.NavigateMode();
     }
@@ -284,4 +307,5 @@ public class SymbolManager : MonoBehaviour
     {
 
     }
+
 }

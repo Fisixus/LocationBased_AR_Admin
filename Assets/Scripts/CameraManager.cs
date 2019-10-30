@@ -35,18 +35,12 @@ public class CameraManager : MonoBehaviour
 
     bool addSymbolMode = false;
     bool navigateMode = true;
-    Vector3 mousePos = Vector3.zero;
     decimal latitude = 0m;
     decimal longitude = 0m;
 
     private void Awake()
     {
         Instance = this;
-    }
-
-    public Vector3 getMousePos()
-    {
-        return mousePos;
     }
 
     public decimal getLatitude()
@@ -192,11 +186,10 @@ public class CameraManager : MonoBehaviour
     
     private void FindMouseLocationLatLot()
     {
-        mousePos = Input.mousePosition;
-        Vector3 mousePosLatLot = mousePos;
-        mousePosLatLot.z = 10.0f;
-        mousePosLatLot = Camera.main.ScreenToWorldPoint(mousePosLatLot);
-        Vector2d LatLot = mapManager.WorldToGeoPosition(mousePosLatLot);
+        Vector3 mousePos = Input.mousePosition;
+        mousePos.z = 10.0f;
+        mousePos = Camera.main.ScreenToWorldPoint(mousePos);
+        Vector2d LatLot = mapManager.WorldToGeoPosition(mousePos);
         latitude = (decimal)LatLot.x;
         latitude = Math.Truncate(latitude * 100000000000m) / 100000000000m;
         longitude = (decimal)LatLot.y;
@@ -210,12 +203,18 @@ public class CameraManager : MonoBehaviour
     {
         GameObject gObj = GameObject.Find("/Canvas/AddOrNavigate/Add");
         ColorUtilityManager.Instance.SetColorofCamMobilityButtons(gObj);
+        SymbolManager.Instance.ActivateMarker();
         addSymbolMode = true;
         navigateMode = false;
     }
 
     public void NavigateMode()
     {
+        if (SymbolManager.Instance.getAddSymbolPanelOpen())
+        {
+            SymbolManager.Instance.CloseAddSymbolAction();
+        }
+
         GameObject gObj = GameObject.Find("/Canvas/AddOrNavigate/Navigate");
         ColorUtilityManager.Instance.SetColorofCamMobilityButtons(gObj);
         addSymbolMode = false;
