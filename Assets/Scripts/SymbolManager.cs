@@ -213,12 +213,11 @@ public class SymbolManager : MonoBehaviour
 
 
         bool nameIsValid = true;
-        string data = WebServiceManager.Instance.getAllSymbolsData();
-        List<Symbol> allSymbols = JsonConvert.DeserializeObject<List<Symbol>>(data);
+
 
         //List<User> selectedUsers = new List<User>();
         User dataUser = null;
-        data = WebServiceManager.Instance.getAllUserData();
+        string data = WebServiceManager.Instance.getAllUserData();
         List<User> allUsers = JsonConvert.DeserializeObject<List<User>>(data);
 
         foreach(User user in allUsers)
@@ -230,23 +229,11 @@ public class SymbolManager : MonoBehaviour
                 break;
             }
         }
-
-        List<string> userSymbolNames = new List<string>();
-        foreach (string symbolUUID in dataUser.SymbolUUIDs)
-        {
-            foreach(Symbol s in allSymbols)
-            {
-                if (s.UserUUID.Equals(symbolUUID))
-                {
-                    userSymbolNames.Add(s.SymbolName);
-                }
-            }
-
-        }
+        List<string> userSymbolNames = UserManager.Instance.GetUsersSymbolNames(dataUser);
 
         for(int i=0; i < userSymbolNames.Count; i++)
         {
-            if (userSymbolNames[i].ToLower().Equals(symbolNameDATA.ToLower()))
+            if (userSymbolNames[i].ToLower().Trim().Equals(symbolNameDATA.ToLower().Trim()))
             {
                 nameIsValid = false;
                 break;
@@ -254,7 +241,7 @@ public class SymbolManager : MonoBehaviour
 
         }
 
-        bool postControl = (decimal.TryParse(longitudeDATA.ToString().Trim(), out result)) && (decimal.TryParse(latitudeDATA.ToString().Trim(), out result)) && (decimal.TryParse(altitudeDATA.ToString().Trim(), out result)) && (Enum.TryParse(categoryDATA, out category)) && (nameIsValid) && (symbolNameDATA != null);
+        bool postControl = (decimal.TryParse(longitudeDATA.ToString().Trim(), out result)) && (decimal.TryParse(latitudeDATA.ToString().Trim(), out result)) && (decimal.TryParse(altitudeDATA.ToString().Trim(), out result)) && (Enum.TryParse(categoryDATA, out category)) && (nameIsValid) && (!symbolNameDATA.Equals(""));
         /*
         Debug.Log("longControl:" + (decimal.TryParse(longitudeDATA.ToString().Trim(), out result)));
         Debug.Log("latControl:" + (decimal.TryParse(latitudeDATA.ToString().Trim(), out result)));
@@ -268,17 +255,19 @@ public class SymbolManager : MonoBehaviour
             Symbol symbol = new Symbol();
             //TODO For every selected user
             symbol.SymbolName = symbolNameDATA;
-            Debug.Log("SymbolName:" + symbolNameDATA);
+            //Debug.Log("SymbolName:" + symbolNameDATA);
             symbol.Latitude = decimal.Parse(latitudeDATA.Replace(',','.'), CultureInfo.InvariantCulture.NumberFormat);
-            Debug.Log("LatData:" + latitudeDATA);
+            //Debug.Log("LatData:" + latitudeDATA);
             symbol.Longitude = decimal.Parse(longitudeDATA.Replace(',','.'), CultureInfo.InvariantCulture.NumberFormat);
-            Debug.Log("LongData:" + longitudeDATA);
+            //Debug.Log("LongData:" + longitudeDATA);
             symbol.Altitude = decimal.Parse(altitudeDATA.Replace(',', '.'), CultureInfo.InvariantCulture.NumberFormat);
             symbol.Category = (Category)Enum.Parse(typeof(Category), categoryDATA);
+            if (messageDATA.Equals("")) messageDATA = "-";
             symbol.Message = messageDATA;
-            Debug.Log("SymbolOwner:" + symbolOwnerDATA);
+            //Debug.Log("MessageData:" + messageDATA);
+            //Debug.Log("SymbolOwner:" + symbolOwnerDATA);
             symbol.UserUUID = UserManager.Instance.FindUserUUIDbyUsername(symbolOwnerDATA);
-            Debug.Log("UserUUID:" + symbol.UserUUID);
+            //Debug.Log("UserUUID:" + symbol.UserUUID);
             WebServiceManager.Instance.AddSymbol(symbol);
             CloseAddSymbolAction();
         }

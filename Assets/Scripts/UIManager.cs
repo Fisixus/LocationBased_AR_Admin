@@ -47,10 +47,14 @@ public class UIManager : MonoBehaviour
     private Quaternion cameraStartingRotation;
     private bool camFocusOnFirstOnline = true;
 
+    //public Material selectedUserMaterial;
+    //public Material onlineUserMaterial;
+
     //This keeps last selected user
     private User selectedUser = null;
     //This keeps last selected symbol
     private Symbol selectedSymbol = null;
+    private bool allOnlineUsersSelected = false;
 
 
     private void Awake()
@@ -65,12 +69,14 @@ public class UIManager : MonoBehaviour
     }
 
     private void CreateOnlineUserButtonsandAvatars()
-    {        
-        foreach(User user in onlineUsers)
+    {
+
+        foreach (User user in onlineUsers)
         {
             ///For the starting camera focus
             if (camFocusOnFirstOnline)
             {
+                allOnlineUsersSelected = false;
                 Camera.main.transform.position = cameraStartingPos;
                 Camera.main.transform.rotation = cameraStartingRotation;
                 mapManager.UpdateMap(new Vector2d((double)user.Latitude, (double)user.Longitude), 16f);
@@ -82,8 +88,21 @@ public class UIManager : MonoBehaviour
             {
                 if (user.Username.Equals(UsernameData.text))
                 {
-                    RefreshUserInfo();
-                    ///TODO There could be an option about focusing selected user's location
+                    ///This is for delete symboldatas when the userinfo panel has been closed
+                    if (UserInfo.activeSelf)
+                    {
+                        allOnlineUsersSelected = false;
+                        RefreshUserInfo();
+                    }
+                    else
+                    {
+                        UserInfo.SetActive(true);
+                        allOnlineUsersSelected = false;
+                        RefreshUserInfo();
+                        UserInfo.SetActive(false);
+                    }
+
+                    //TODO There could be an option about focusing selected user's location
                     //UpdateCameraPosition();
                 }
             }
@@ -93,13 +112,13 @@ public class UIManager : MonoBehaviour
             {
                 if (user.Username.Equals(UsernameData.text))
                 {
+                    allOnlineUsersSelected = false;
                     RefreshSymbolInfo();
                 }
             }
 
             GameObject avatar = Instantiate(userAvatar, mapManager.GeoToWorldPosition(new Vector2d((double)user.Latitude, (double)user.Longitude), true), Quaternion.identity);
             avatar.name = user.Username;
-            //avatar.transform.GetChild(0).GetComponent<Renderer>().material = selectedUserMaterial;
             GameObject goButton = (GameObject)Instantiate(onlineUserButton);
             goButton.transform.SetParent(contentPanelOnlines.transform, false);
             goButton.GetComponentInChildren<TextMeshProUGUI>().text = user.Username;
@@ -111,11 +130,15 @@ public class UIManager : MonoBehaviour
                 //get info ????
                 if (user.getUUID.Equals(selectedUser.getUUID))
                 {
-                    //give color red to avatar
+                    avatar.transform.GetChild(0).GetComponent<Renderer>().material = selectedUserMaterial;
+                    avatar.transform.GetChild(1).GetComponent<Renderer>().material = selectedUserMaterial;
+                    
                 }
                 else
                 {
-                    //give color yellow to avatar  
+                    avatar.transform.GetChild(0).GetComponent<Renderer>().material = onlineUserMaterial;
+                    avatar.transform.GetChild(1).GetComponent<Renderer>().material = onlineUserMaterial;
+                    
                 }
             }
             */
@@ -128,6 +151,13 @@ public class UIManager : MonoBehaviour
             allButton.transform.SetParent(contentPanelOnlines.transform, false);
             allButton.GetComponentInChildren<TextMeshProUGUI>().text = "ALL";
             allButton.GetComponent<Button>().onClick.AddListener(AllInfo);
+
+            if (allOnlineUsersSelected)
+            {
+                DeleteSymbolDatas();
+                DeleteSymbolImages();
+                AllInfo();
+            }
 
             ColorUtilityManager.Instance.SetColorofOnlineUserButtons(selectedUser);
             ColorUtilityManager.Instance.SetColorofAvatars(selectedUser);
@@ -164,7 +194,6 @@ public class UIManager : MonoBehaviour
         }
         if (onlineUsers.Count == 0) camFocusOnFirstOnline = true;
 
-        //TODO Not Working Right
         if (onlineUserInfoPanelOpenedPersonLeft)
         {
             CloseUserInfo();
@@ -207,27 +236,20 @@ public class UIManager : MonoBehaviour
 
     private void AllInfo()
     {
+        allOnlineUsersSelected = true;
         selectedUser = null;
         selectedSymbol = null;
         CloseUserInfo();
         CloseSymbolInfo();
-        /*
-        mapManager.ResetMap();
-        float totalLatitude = 0f;
-        float totalLongitude = 0f;
-        //TODO Mathematical stuff like this
+
         foreach (User user in onlineUsers)
-        {
-            totalLatitude += user.Latitude;
-            totalLongitude += user.Longitude;
+        {            
+            RefreshUserInfo(user);            
         }
-        totalLatitude /= onlineUsers.Count;
-        totalLongitude /= onlineUsers.Count; 
-        Debug.Log("TotalLatitude:" + totalLatitude);
-        Debug.Log("TotalLongitude:" + totalLongitude);
-        mapManager.UpdateMap(new Vector2d(totalLatitude, totalLongitude), 16f);
-    }
-    */
+        ColorUtilityManager.Instance.SetColorofOnlineUserButtons(null);
+        ColorUtilityManager.Instance.SetColorofAvatars(null);
+
+
     }
 
     public void Search()
@@ -305,6 +327,17 @@ public class UIManager : MonoBehaviour
         RefreshUserSymbols();
     }
 
+    private void RefreshUserInfo(User user)
+    {                
+        UsernameData.text = user.Username;
+        FirstnameData.text = user.Firstname;
+        SurnameData.text = user.Surname;
+        UserLatitudeData.text = user.Latitude.ToString();
+        UserLongitudeData.text = user.Longitude.ToString();
+        UserAltitudeData.text = user.Altitude.ToString();
+        RefreshUserSymbols(user);
+    }
+
     private void RefreshUserSymbols()
     {       
         string data = WebServiceManager.Instance.getAllSymbolsData();
@@ -315,6 +348,27 @@ public class UIManager : MonoBehaviour
             if (symbol.UserUUID.Equals(selectedUser.getUUID))
             {
                 selectedUser.Symbols.Add(symbol);
+                GameObject symbolInfo = (GameObject)Instantiate(SymbolData);
+                symbolInfo.transform.SetParent(contentPanelUserInfo.transform, false);
+                symbolInfo.name = symbol.SymbolName;
+                symbolInfo.GetComponentInChildren<TextMeshProUGUI>().text = symbol.SymbolName;
+                symbolInfo.GetComponent<Button>().onClick.AddListener(GetSymbolInfo);
+                symbolInfo.GetComponent<Button>().onClick.AddListener(LocateSymbolLocation);
+                SymbolManager.Instance.CreateSymbolImageOnMap(symbol);
+            }
+        }
+    }
+
+    private void RefreshUserSymbols(User user)
+    {
+        string data = WebServiceManager.Instance.getAllSymbolsData();
+        List<Symbol> allSymbols = JsonConvert.DeserializeObject<List<Symbol>>(data);
+
+        foreach (Symbol symbol in allSymbols)
+        {
+            if (symbol.UserUUID.Equals(user.getUUID))
+            {
+                //user.Symbols.Add(symbol);
                 GameObject symbolInfo = (GameObject)Instantiate(SymbolData);
                 symbolInfo.transform.SetParent(contentPanelUserInfo.transform, false);
                 symbolInfo.name = symbol.SymbolName;

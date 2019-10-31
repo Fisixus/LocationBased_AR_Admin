@@ -5495,6 +5495,9 @@ MonoBehaviour:
   SymbolLongitudeData: {fileID: 1648627062}
   SymbolAltitudeData: {fileID: 2087217945}
   MessageData: {fileID: 811255619}
+  selectedUserMaterial: {fileID: 2100000, guid: 7b18e3170d9fbd84b84bc3f2ec64abc4,
+    type: 2}
+  onlineUserMaterial: {fileID: 0}
 --- !u!21 &1193734127
 Material:
   serializedVersion: 6
@@ -6431,7 +6434,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: -0.0014668, y: 0.0000145539825}
+  m_AnchoredPosition: {x: -0.0014668, y: -0.00001525937}
   m_SizeDelta: {x: 215.71, y: 0}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &1307807410

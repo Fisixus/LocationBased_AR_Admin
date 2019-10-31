@@ -42,4 +42,20 @@ public class UserManager : MonoBehaviour
         }
         return username;
     }
+
+    public List<string> GetUsersSymbolNames(User dataUser)
+    {
+        string data = WebServiceManager.Instance.getAllSymbolsData();
+        List<Symbol> allSymbols = JsonConvert.DeserializeObject<List<Symbol>>(data);
+        List<string> userSymbolNames = new List<string>();
+        
+        foreach (Symbol s in allSymbols)
+        {
+            if (s.UserUUID.Equals(dataUser.getUUID))
+            {
+                userSymbolNames.Add(s.SymbolName);
+            }
+        }
+        return userSymbolNames;
+    }
 }

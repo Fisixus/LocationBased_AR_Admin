@@ -108,7 +108,8 @@ public class CameraManager : MonoBehaviour
             NavigateCam();
         }
         else if (addSymbolMode)
-        {                        
+        {
+            ZoomCam();
             SymbolManager.Instance.AddSymbol();
         }
         
@@ -127,7 +128,7 @@ public class CameraManager : MonoBehaviour
         // For moving on camera with left click
         if (Input.GetMouseButton(0))
         {
-            Vector3 dy = transform.forward * Input.GetAxis("Mouse Y") * moveSpeedPerPixel * transform.position.y * 2;
+            Vector3 dy = transform.up * Input.GetAxis("Mouse Y") * moveSpeedPerPixel * transform.position.y;
             Vector3 dx = transform.right * Input.GetAxis("Mouse X") * moveSpeedPerPixel * transform.position.y;
 #elif (UNITY_IOS || UNITY_ANDROID) && !UNITY_EDITOR
         if (Input.touchCount == 1 && Input.GetTouch(0).phase == TouchPhase.Moved) {
@@ -186,10 +187,21 @@ public class CameraManager : MonoBehaviour
     
     private void FindMouseLocationLatLot()
     {
+        /*
         Vector3 mousePos = Input.mousePosition;
-        mousePos.z = 10.0f;
-        mousePos = Camera.main.ScreenToWorldPoint(mousePos);
-        Vector2d LatLot = mapManager.WorldToGeoPosition(mousePos);
+        Debug.Log("Mousepos:" + mousePos);
+        mousePos.z = mousePos.y;
+        mousePos.y = 0;
+        //mousePos = Camera.main.ScreenToWorldPoint(mousePos);
+        Debug.Log("Mousepos2:" + mousePos);
+        */
+        var mousePosScreen = Input.mousePosition;
+
+        mousePosScreen.z = Camera.main.transform.localPosition.y;
+        var pos = Camera.main.ScreenToWorldPoint(mousePosScreen);
+
+
+        Vector2d LatLot = mapManager.WorldToGeoPosition(pos);
         latitude = (decimal)LatLot.x;
         latitude = Math.Truncate(latitude * 100000000000m) / 100000000000m;
         longitude = (decimal)LatLot.y;
@@ -201,6 +213,7 @@ public class CameraManager : MonoBehaviour
 
     public void AddSymbolMode()
     {
+        transform.rotation = Quaternion.Euler(new Vector3(90f, 0f, 0f));
         GameObject gObj = GameObject.Find("/Canvas/AddOrNavigate/Add");
         ColorUtilityManager.Instance.SetColorofCamMobilityButtons(gObj);
         SymbolManager.Instance.ActivateMarker();
@@ -214,7 +227,7 @@ public class CameraManager : MonoBehaviour
         {
             SymbolManager.Instance.CloseAddSymbolAction();
         }
-
+        transform.rotation = Quaternion.Euler(new Vector3(60f, 0f, 0f));
         GameObject gObj = GameObject.Find("/Canvas/AddOrNavigate/Navigate");
         ColorUtilityManager.Instance.SetColorofCamMobilityButtons(gObj);
         addSymbolMode = false;
