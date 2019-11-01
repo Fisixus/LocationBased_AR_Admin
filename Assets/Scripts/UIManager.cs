@@ -14,6 +14,8 @@ using System.Globalization;
 
 public class UIManager : MonoBehaviour
 {
+    public static UIManager Instance;
+
     public GameObject contentPanelOnlines;
     public GameObject contentPanelUserInfo;
     public GameObject onlineUserButton;
@@ -57,8 +59,14 @@ public class UIManager : MonoBehaviour
     private bool allOnlineUsersSelected = false;
 
 
+    public User getSelectedUser()
+    {
+        return selectedUser;
+    }
+
     private void Awake()
     {
+        Instance = this;
         cameraStartingPos = Camera.main.transform.position;
         cameraStartingRotation = Camera.main.transform.rotation;
     }
@@ -117,7 +125,7 @@ public class UIManager : MonoBehaviour
                 }
             }
 
-            GameObject avatar = Instantiate(userAvatar, mapManager.GeoToWorldPosition(new Vector2d((double)user.Latitude, (double)user.Longitude), true), Quaternion.identity);
+            GameObject avatar = Instantiate(userAvatar, mapManager.GeoToWorldPosition(new Vector2d((double)user.Latitude, (double)user.Longitude), true), Quaternion.identity) as GameObject;
             avatar.name = user.Username;
             GameObject goButton = (GameObject)Instantiate(onlineUserButton);
             goButton.transform.SetParent(contentPanelOnlines.transform, false);
@@ -137,8 +145,7 @@ public class UIManager : MonoBehaviour
                 else
                 {
                     avatar.transform.GetChild(0).GetComponent<Renderer>().material = onlineUserMaterial;
-                    avatar.transform.GetChild(1).GetComponent<Renderer>().material = onlineUserMaterial;
-                    
+                    avatar.transform.GetChild(1).GetComponent<Renderer>().material = onlineUserMaterial;                    
                 }
             }
             */
@@ -158,9 +165,11 @@ public class UIManager : MonoBehaviour
                 DeleteSymbolImages();
                 AllInfo();
             }
-
-            ColorUtilityManager.Instance.SetColorofOnlineUserButtons(selectedUser);
-            ColorUtilityManager.Instance.SetColorofAvatars(selectedUser);
+            else
+            {
+                ColorUtilityManager.Instance.SetColorofOnlineUserButtons(selectedUser);
+                ColorUtilityManager.Instance.SetColorofAvatars(selectedUser);
+            }
         }
     }
 
@@ -180,6 +189,12 @@ public class UIManager : MonoBehaviour
         onlineUsers.Clear();
         bool onlineUserInfoPanelOpenedPersonLeft = true;
         string data = WebServiceManager.Instance.getAllUserData();
+        if (data.Equals(""))
+        {
+            Debug.Log("Waiting connection!");
+            return;
+        }
+
         List<User> allUsers = JsonConvert.DeserializeObject<List<User>>(data);
         foreach (var user in allUsers)
         {
@@ -236,6 +251,8 @@ public class UIManager : MonoBehaviour
 
     private void AllInfo()
     {
+        string buttonText = "ALL";
+
         allOnlineUsersSelected = true;
         selectedUser = null;
         selectedSymbol = null;
@@ -246,9 +263,9 @@ public class UIManager : MonoBehaviour
         {            
             RefreshUserInfo(user);            
         }
-        ColorUtilityManager.Instance.SetColorofOnlineUserButtons(null);
-        ColorUtilityManager.Instance.SetColorofAvatars(null);
 
+        ColorUtilityManager.Instance.SetColorofOnlineUserButtons(null, buttonText);
+        ColorUtilityManager.Instance.SetColorofAvatars(null);
 
     }
 
@@ -312,7 +329,7 @@ public class UIManager : MonoBehaviour
         ColorUtilityManager.Instance.SetColorofAvatars(selectedUser);
     }
 
-    private void RefreshUserInfo()
+    public void RefreshUserInfo()
     {
         DeleteSymbolDatas();
         DeleteSymbolImages();
@@ -327,14 +344,16 @@ public class UIManager : MonoBehaviour
         RefreshUserSymbols();
     }
 
-    private void RefreshUserInfo(User user)
+    public void RefreshUserInfo(User user)
     {                
+        /*
         UsernameData.text = user.Username;
         FirstnameData.text = user.Firstname;
         SurnameData.text = user.Surname;
         UserLatitudeData.text = user.Latitude.ToString();
         UserLongitudeData.text = user.Longitude.ToString();
         UserAltitudeData.text = user.Altitude.ToString();
+        */
         RefreshUserSymbols(user);
     }
 
@@ -349,11 +368,14 @@ public class UIManager : MonoBehaviour
             {
                 selectedUser.Symbols.Add(symbol);
                 GameObject symbolInfo = (GameObject)Instantiate(SymbolData);
+                symbolInfo.name = symbol.getUUID;
                 symbolInfo.transform.SetParent(contentPanelUserInfo.transform, false);
-                symbolInfo.name = symbol.SymbolName;
-                symbolInfo.GetComponentInChildren<TextMeshProUGUI>().text = symbol.SymbolName;
+                symbolInfo.transform.GetChild(0). GetComponent<TextMeshProUGUI>().text = symbol.SymbolName;
                 symbolInfo.GetComponent<Button>().onClick.AddListener(GetSymbolInfo);
                 symbolInfo.GetComponent<Button>().onClick.AddListener(LocateSymbolLocation);
+
+                symbolInfo.transform.GetChild(1).GetComponent<Button>().onClick.AddListener(SymbolManager.Instance.DeleteSymbol);
+
                 SymbolManager.Instance.CreateSymbolImageOnMap(symbol);
             }
         }
@@ -368,13 +390,15 @@ public class UIManager : MonoBehaviour
         {
             if (symbol.UserUUID.Equals(user.getUUID))
             {
-                //user.Symbols.Add(symbol);
+                /*
+                user.Symbols.Add(symbol);
                 GameObject symbolInfo = (GameObject)Instantiate(SymbolData);
                 symbolInfo.transform.SetParent(contentPanelUserInfo.transform, false);
                 symbolInfo.name = symbol.SymbolName;
                 symbolInfo.GetComponentInChildren<TextMeshProUGUI>().text = symbol.SymbolName;
                 symbolInfo.GetComponent<Button>().onClick.AddListener(GetSymbolInfo);
                 symbolInfo.GetComponent<Button>().onClick.AddListener(LocateSymbolLocation);
+                */
                 SymbolManager.Instance.CreateSymbolImageOnMap(symbol);
             }
         }

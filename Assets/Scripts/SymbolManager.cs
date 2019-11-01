@@ -21,6 +21,7 @@ public class SymbolManager : MonoBehaviour
     public GameObject addSymbolPanelPreb;
     public GameObject addSymbolMarker;
     public Canvas canvas;
+    public GameObject deleteSymbolConfirmation;
 
     private GameObject addSymbolPanel;
     private EventSystem m_EventSystem;
@@ -29,6 +30,8 @@ public class SymbolManager : MonoBehaviour
     private List<RaycastResult> UIResults = new List<RaycastResult>();
 
     private bool addSymbolPanelOpen = false;
+    string symbolDATAName = null;
+    User selectedUser = null;
 
     public void setAddSymbolPanelOpen(bool value)
     {
@@ -145,7 +148,7 @@ public class SymbolManager : MonoBehaviour
         
         symbolImage.GetComponentInChildren<RawImage>().texture = textureList[textureNo];
         GameObject image = Instantiate(symbolImage, mapManager.GeoToWorldPosition(new Vector2d((double)symbol.Latitude, (double)symbol.Longitude), true), Quaternion.identity);
-        image.name = symbol.SymbolName;
+        image.name = symbol.getUUID;
         image.tag = "SymbolImage";
     }
     
@@ -294,7 +297,34 @@ public class SymbolManager : MonoBehaviour
 
     public void DeleteSymbol()
     {
+        GameObject gObj = EventSystem.current.currentSelectedGameObject;
+        symbolDATAName = gObj.transform.parent.gameObject.name;
+        selectedUser = UIManager.Instance.getSelectedUser();
 
+        if (selectedUser != null && symbolDATAName != null)
+        {
+            deleteSymbolConfirmation.SetActive(true);                 
+        }
+        else
+        {
+            Debug.Log("Null Issue");
+        }
+    }
+
+    public void DeleteSymbolConfirm()
+    {
+        WebServiceManager.Instance.DeleteSymbol(symbolDATAName, selectedUser.getUUID);
+        CloseSymbolConfirmationWindow();
+    }
+
+    public void DeleteSymbolCancel()
+    {
+        CloseSymbolConfirmationWindow();
+    }
+
+    public void CloseSymbolConfirmationWindow()
+    {
+        deleteSymbolConfirmation.SetActive(false);
     }
 
 }

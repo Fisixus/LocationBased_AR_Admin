@@ -94,14 +94,14 @@ public class ColorUtilityManager : MonoBehaviour
         }
     }
 
-    public void SetColorofOnlineUserButtons(User selectedUser)
+    public void SetColorofOnlineUserButtons(User selectedUser, string allUserText = " ")
     {
         GameObject[] onlineButtons = GameObject.FindGameObjectsWithTag("OnlineButtons");
         ColorBlock colors;
         foreach (GameObject gObj in onlineButtons)
         {
             string text = gObj.GetComponentInChildren<TextMeshProUGUI>().text;
-            if (selectedUser != null && text.ToLower().Equals(selectedUser.Username.ToLower()))
+            if ((selectedUser != null && text.ToLower().Equals(selectedUser.Username.ToLower())) || text.ToLower().Equals(allUserText.ToLower()))
             {
                 colors = gObj.GetComponentInChildren<Button>().colors;
                 colors.normalColor = GetColor((int)Colors.OnlineSelectedUserNormal);
@@ -110,6 +110,7 @@ public class ColorUtilityManager : MonoBehaviour
                 gObj.GetComponentInChildren<Button>().colors = colors;
                 continue;
             }
+
             colors = gObj.GetComponentInChildren<Button>().colors;
             colors.normalColor = GetColor((int)Colors.OnlineUserNormal);
             colors.highlightedColor = GetColor((int)Colors.OnlineUserHighlighted);
