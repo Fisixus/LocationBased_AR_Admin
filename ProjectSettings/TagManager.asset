@@ -9,6 +9,7 @@ TagManager:
   - SymbolData
   - SymbolImage
   - CamMobility
+  - OnlineUserToggles
   layers:
   - Default
   - TransparentFX

@@ -26,6 +26,10 @@ public class CameraManager : MonoBehaviour
     public float speedH = 2.0f;
     public float speedV = 2.0f;
 
+    public GameObject userInfoLockPanel;
+    public GameObject onlineUsersLockPanel;
+    public GameObject searchAreaLockPanel;
+
     private float yaw = 0.0f;
     private float pitch = 45.0f;
     private EventSystem m_EventSystem;
@@ -219,6 +223,10 @@ public class CameraManager : MonoBehaviour
         SymbolManager.Instance.ActivateMarker();
         addSymbolMode = true;
         navigateMode = false;
+
+        userInfoLockPanel.SetActive(true);
+        onlineUsersLockPanel.SetActive(true);
+        searchAreaLockPanel.SetActive(true);
     }
 
     public void NavigateMode()
@@ -231,6 +239,10 @@ public class CameraManager : MonoBehaviour
         GameObject gObj = GameObject.Find("/Canvas/AddOrNavigate/Navigate");
         ColorUtilityManager.Instance.SetColorofCamMobilityButtons(gObj);
         addSymbolMode = false;
-        navigateMode = true;        
+        navigateMode = true;
+
+        userInfoLockPanel.SetActive(false);
+        onlineUsersLockPanel.SetActive(false);
+        searchAreaLockPanel.SetActive(false);
     }
 }

@@ -127,8 +127,11 @@ public class UIManager : MonoBehaviour
 
             GameObject avatar = Instantiate(userAvatar, mapManager.GeoToWorldPosition(new Vector2d((double)user.Latitude, (double)user.Longitude), true), Quaternion.identity) as GameObject;
             avatar.name = user.Username;
+            avatar.GetComponentInChildren<TextMeshProUGUI>().text = user.Username;
+
             GameObject goButton = (GameObject)Instantiate(onlineUserButton);
             goButton.transform.SetParent(contentPanelOnlines.transform, false);
+            goButton.name = user.Username;
             goButton.GetComponentInChildren<TextMeshProUGUI>().text = user.Username;
             goButton.GetComponent<Button>().onClick.AddListener(LocateUserLocation);
             goButton.GetComponent<Button>().onClick.AddListener(GetUserInfoAndSetColors);
@@ -276,11 +279,11 @@ public class UIManager : MonoBehaviour
         decimal Lat = 0m;
         if (decimal.TryParse(LatInputField.GetComponent<InputField>().text.ToString(), out result))
         {
-            Lat = decimal.Parse(LatInputField.GetComponent<InputField>().text.ToString().Trim(), CultureInfo.InvariantCulture.NumberFormat);
+            Lat = decimal.Parse(LatInputField.GetComponent<InputField>().text.ToString().Trim().Replace(',','.'), CultureInfo.InvariantCulture.NumberFormat);
         }
         if (decimal.TryParse(LotInputField.GetComponent<InputField>().text.ToString().ToString(), out result))
         {
-            Lot = decimal.Parse(LotInputField.GetComponent<InputField>().text.Trim(), CultureInfo.InvariantCulture.NumberFormat);
+            Lot = decimal.Parse(LotInputField.GetComponent<InputField>().text.Trim().Replace(',', '.'), CultureInfo.InvariantCulture.NumberFormat);
         }
         if(Lot != 0m && Lat != 0m)
         {

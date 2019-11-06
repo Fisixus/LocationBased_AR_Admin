@@ -147,6 +147,8 @@ public class SymbolManager : MonoBehaviour
     {
         
         symbolImage.GetComponentInChildren<RawImage>().texture = textureList[textureNo];
+        symbolImage.GetComponentInChildren<TextMeshProUGUI>().text = UserManager.Instance.FindUsernamebyUserUUID(symbol.UserUUID);
+
         GameObject image = Instantiate(symbolImage, mapManager.GeoToWorldPosition(new Vector2d((double)symbol.Latitude, (double)symbol.Longitude), true), Quaternion.identity);
         image.name = symbol.getUUID;
         image.tag = "SymbolImage";
@@ -201,7 +203,7 @@ public class SymbolManager : MonoBehaviour
         decimal result;
 
         string symbolNameDATA = addSymbolPanel.transform.Find("ScrollView/ContentPanel/SymbolNameDATA").GetComponent<InputField>().text.Trim();
-        //TODO geo info must writed automatically by WorldToGeoPosition method
+        
         string latitudeDATA = addSymbolPanel.transform.Find("ScrollView/ContentPanel/LatitudeDATA").GetComponent<InputField>().text.Trim();
         string longitudeDATA = addSymbolPanel.transform.Find("ScrollView/ContentPanel/LongitudeDATA").GetComponent<InputField>().text.Trim();
         string altitudeDATA = addSymbolPanel.transform.Find("ScrollView/ContentPanel/AltitudeDATA").GetComponent<InputField>().text.Trim();
@@ -215,34 +217,7 @@ public class SymbolManager : MonoBehaviour
         string symbolOwnerDATA = symbolOwnerDropdown.options[symbolOwnerDropdown.value].text;
 
 
-        bool nameIsValid = true;
-
-
-        //List<User> selectedUsers = new List<User>();
-        User dataUser = null;
-        string data = WebServiceManager.Instance.getAllUserData();
-        List<User> allUsers = JsonConvert.DeserializeObject<List<User>>(data);
-
-        foreach(User user in allUsers)
-        {
-            if (user.Username.Equals(symbolOwnerDATA))
-            {
-                //TODO dataUser should be list of selected users
-                dataUser = user;
-                break;
-            }
-        }
-        List<string> userSymbolNames = UserManager.Instance.GetUsersSymbolNames(dataUser);
-
-        for(int i=0; i < userSymbolNames.Count; i++)
-        {
-            if (userSymbolNames[i].ToLower().Trim().Equals(symbolNameDATA.ToLower().Trim()))
-            {
-                nameIsValid = false;
-                break;
-            }
-
-        }
+        bool nameIsValid = ControlNameIsValid(symbolOwnerDATA, symbolNameDATA);
 
         bool postControl = (decimal.TryParse(longitudeDATA.ToString().Trim(), out result)) && (decimal.TryParse(latitudeDATA.ToString().Trim(), out result)) && (decimal.TryParse(altitudeDATA.ToString().Trim(), out result)) && (Enum.TryParse(categoryDATA, out category)) && (nameIsValid) && (!symbolNameDATA.Equals(""));
         /*
@@ -280,6 +255,38 @@ public class SymbolManager : MonoBehaviour
             Debug.Log("This request is not eligible!");
         }
 
+    }
+
+    private bool ControlNameIsValid(string symbolOwnerDATA, string symbolNameDATA)
+    {
+        bool nameIsValid = true;
+        //List<User> selectedUsers = new List<User>();
+        User dataUser = null;
+        string data = WebServiceManager.Instance.getAllUserData();
+        List<User> allUsers = JsonConvert.DeserializeObject<List<User>>(data);
+
+        foreach (User user in allUsers)
+        {
+            if (user.Username.Equals(symbolOwnerDATA))
+            {
+                //TODO dataUser should be list of selected users
+                dataUser = user;
+                break;
+            }
+        }
+        List<string> userSymbolNames = UserManager.Instance.GetUsersSymbolNames(dataUser);
+
+        for (int i = 0; i < userSymbolNames.Count; i++)
+        {
+            if (userSymbolNames[i].ToLower().Trim().Equals(symbolNameDATA.ToLower().Trim()))
+            {
+                nameIsValid = false;
+                break;
+            }
+
+        }
+
+        return nameIsValid;
     }
 
     public void ActivateMarker()
