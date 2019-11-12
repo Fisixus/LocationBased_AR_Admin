@@ -173,15 +173,21 @@ public class SymbolManager : MonoBehaviour
             addSymbolPanel.transform.GetChild(0).GetComponent<Button>().onClick.AddListener(CloseAddSymbolAction);
             addSymbolPanel.transform.GetChild(1).GetComponentInChildren<Button>().onClick.AddListener(AddSymbolAction);
 
-            //This is for filling lat lot values automatically
-            addSymbolPanel.transform.Find("ScrollView/ContentPanel/LatitudeDATA").GetComponent<InputField>().text = CameraManager.Instance.getLatitude().ToString();
-            addSymbolPanel.transform.Find("ScrollView/ContentPanel/LongitudeDATA").GetComponent<InputField>().text = CameraManager.Instance.getLongitude().ToString();
-            addSymbolPanel.transform.Find("ScrollView/ContentPanel/AltitudeDATA").GetComponent<InputField>().text = "0.0";
-
-            FillUserDropdown();
+            AutoLoadtoAddPanel();
             addSymbolPanelOpen = true;
         }
 
+    }
+
+    private void AutoLoadtoAddPanel()
+    {
+        ///This is for filling lat lot values automatically
+        addSymbolPanel.transform.Find("ScrollView/ContentPanel/LatitudeDATA").GetComponent<InputField>().text = CameraManager.Instance.getLatitude().ToString();
+        addSymbolPanel.transform.Find("ScrollView/ContentPanel/LongitudeDATA").GetComponent<InputField>().text = CameraManager.Instance.getLongitude().ToString();
+        addSymbolPanel.transform.Find("ScrollView/ContentPanel/AltitudeDATA").GetComponent<InputField>().text = "0.0";
+
+        ///Category dropdown has been filled without code.
+        FillUserDropdown();
     }
 
     private void FillUserDropdown()
@@ -289,6 +295,7 @@ public class SymbolManager : MonoBehaviour
         return nameIsValid;
     }
 
+    /// It uses when addsymbol option has been selected
     public void ActivateMarker()
     {
         addSymbolMarker.transform.position = Input.mousePosition;        

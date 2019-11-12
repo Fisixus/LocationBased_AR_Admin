@@ -54,8 +54,10 @@ public class UIManager : MonoBehaviour
 
     //This keeps last selected user
     private User selectedUser = null;
+
     //This keeps last selected symbol
     private Symbol selectedSymbol = null;
+     
     private bool allOnlineUsersSelected = false;
 
 
@@ -125,16 +127,19 @@ public class UIManager : MonoBehaviour
                 }
             }
 
+            //TODO avatars always on the scene, this could change with RefreshUserInfo
             GameObject avatar = Instantiate(userAvatar, mapManager.GeoToWorldPosition(new Vector2d((double)user.Latitude, (double)user.Longitude), true), Quaternion.identity) as GameObject;
             avatar.name = user.Username;
             avatar.GetComponentInChildren<TextMeshProUGUI>().text = user.Username;
 
-            GameObject goButton = (GameObject)Instantiate(onlineUserButton);
-            goButton.transform.SetParent(contentPanelOnlines.transform, false);
-            goButton.name = user.Username;
-            goButton.GetComponentInChildren<TextMeshProUGUI>().text = user.Username;
-            goButton.GetComponent<Button>().onClick.AddListener(LocateUserLocation);
-            goButton.GetComponent<Button>().onClick.AddListener(GetUserInfoAndSetColors);
+            GameObject userButton = Instantiate(onlineUserButton) as GameObject;
+            userButton.transform.SetParent(contentPanelOnlines.transform, false);
+            userButton.name = user.Username;
+            userButton.GetComponentInChildren<TextMeshProUGUI>().text = user.Username;
+            userButton.GetComponent<Button>().onClick.AddListener(LocateUserLocation);
+            userButton.GetComponent<Button>().onClick.AddListener(GetUserInfoAndSetColors);
+            
+            ///COLOR ONLY CAN CHANGE IN HERE, CANNOT CHANGE MATERIAL DYNAMICALLY IN 'SetColorofAvatars' METHOD, UNITY PREFAB PROBLEM!!
             /*
             if(selectedUser != null)
             {
@@ -222,6 +227,8 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    /// General refresh method it calls with invoke repeating, if the change must seen instant then call should hard coded.
+    /// E.g : LocateUserLocation()
     private void RefreshOnlineUsers()
     {
         FindOnlineUsers();
@@ -263,8 +270,8 @@ public class UIManager : MonoBehaviour
         CloseSymbolInfo();
 
         foreach (User user in onlineUsers)
-        {            
-            RefreshUserInfo(user);            
+        {
+            RefreshAllUserInfo(user);            
         }
 
         ColorUtilityManager.Instance.SetColorofOnlineUserButtons(null, buttonText);
@@ -347,7 +354,9 @@ public class UIManager : MonoBehaviour
         RefreshUserSymbols();
     }
 
-    public void RefreshUserInfo(User user)
+
+    /// When the ALL users are selected
+    public void RefreshAllUserInfo(User user)
     {                
         /*
         UsernameData.text = user.Username;
@@ -357,7 +366,7 @@ public class UIManager : MonoBehaviour
         UserLongitudeData.text = user.Longitude.ToString();
         UserAltitudeData.text = user.Altitude.ToString();
         */
-        RefreshUserSymbols(user);
+        RefreshAllUserSymbols(user);
     }
 
     private void RefreshUserSymbols()
@@ -384,7 +393,8 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    private void RefreshUserSymbols(User user)
+    /// When the ALL users are selected
+    private void RefreshAllUserSymbols(User user)
     {
         string data = WebServiceManager.Instance.getAllSymbolsData();
         List<Symbol> allSymbols = JsonConvert.DeserializeObject<List<Symbol>>(data);
