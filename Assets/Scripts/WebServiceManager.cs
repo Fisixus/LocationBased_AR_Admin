@@ -70,33 +70,7 @@ public class WebServiceManager : MonoBehaviour
     {
         Instance = this;        
     }
-    /*
-    private void Update()
-    {
-
-        StartCoroutine(X());
- 
-    }
-
-    IEnumerator X()
-    {
-        using (UnityWebRequest request = UnityWebRequest.Put("http://roboturka.com/", " "))
-        {
-            request.method = UnityWebRequest.kHttpVerbPOST;
-
-            yield return request.SendWebRequest();
-
-            if (request.isNetworkError || request.isHttpError)
-            {
-                Debug.Log(request.error);
-            }
-            else
-            {
-                Debug.Log("Form upload complete!");
-            }
-        }
-    }
-    */
+    
     void Start()
     {
         ///JsonFrom Control
@@ -113,8 +87,8 @@ public class WebServiceManager : MonoBehaviour
         string jsonData = JsonConvert.SerializeObject(user);
         Debug.Log(jsonData);
         */
-        InvokeRepeating("GetAllUsers", .1f, 5f);
-        InvokeRepeating("GetAllSymbols", .1f, 5f);
+        //InvokeRepeating("GetAllUsers", .1f, 5f);
+        //InvokeRepeating("GetAllSymbols", .1f, 5f);
     }
 
     public void GetAllUsers()

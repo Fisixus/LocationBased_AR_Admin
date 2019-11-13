@@ -13,6 +13,16 @@ public class UserManager : MonoBehaviour
         Instance = this;
     }
 
+    private void Start()
+    {
+        InvokeRepeating("CallAllUsers", .1f, 5f);
+    }
+
+    public void CallAllUsers()
+    {
+        WebServiceManager.Instance.GetAllUsers();
+    }
+
     public string FindUserUUIDbyUsername(string symbolOwnerName)
     {        
         string userUUID = string.Empty;

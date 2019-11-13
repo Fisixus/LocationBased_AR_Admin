@@ -52,6 +52,12 @@ public class SymbolManager : MonoBehaviour
     {
         m_Raycaster = canvas.GetComponent<GraphicRaycaster>();
         m_PointerEventData = new PointerEventData(m_EventSystem);
+        InvokeRepeating("CallAllSymbols", .1f, 5f);
+    }
+
+    public void CallAllSymbols()
+    {
+        WebServiceManager.Instance.GetAllSymbols();
     }
 
     private void LateUpdate()
