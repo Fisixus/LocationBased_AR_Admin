@@ -56,7 +56,7 @@ public class ColorUtilityManager : MonoBehaviour
         }
         return color;
     }
-    //Not working completely true because of the prefab problems
+    //TODO Not working, algorithm is completely true but there is a problem on Destroy&Create then change material on prefab.
     public void SetColorofAvatars(User selectedUser)
     {
         GameObject[] userAvatars = GameObject.FindGameObjectsWithTag("UserAvatar");
@@ -86,7 +86,7 @@ public class ColorUtilityManager : MonoBehaviour
             avatar = GameObject.Find("/" + userAvatars[i].name);
             avatarRenderer = avatar.GetComponentsInChildren<Renderer>();
 
-            //Call SetColor using the shader property name "_Color" and setting the color to yellow
+            ///Call SetColor using the shader property name "_Color" and setting the color to yellow
             foreach (Renderer renderer in avatarRenderer)
             {
                 renderer.material = onlineUserMaterial;
