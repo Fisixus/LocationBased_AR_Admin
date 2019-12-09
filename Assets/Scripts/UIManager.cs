@@ -139,7 +139,7 @@ public class UIManager : MonoBehaviour
             userButton.GetComponent<Button>().onClick.AddListener(LocateUserLocation);
             userButton.GetComponent<Button>().onClick.AddListener(GetUserInfoAndSetColors);
             
-            ///COLOR ONLY CAN CHANGE IN HERE, CANNOT CHANGE MATERIAL DYNAMICALLY IN 'SetColorofAvatars' METHOD, UNITY PREFAB PROBLEM!!
+            //TODO COLOR ONLY CAN CHANGE IN HERE, CANNOT CHANGE MATERIAL DYNAMICALLY IN 'SetColorofAvatars' METHOD, UNITY PREFAB PROBLEM!!
             /*
             if(selectedUser != null)
             {
@@ -204,6 +204,7 @@ public class UIManager : MonoBehaviour
         }
 
         List<User> allUsers = JsonConvert.DeserializeObject<List<User>>(data);
+        //User[] allUsers = JSONHelper.FromJson<User>(data);
         foreach (var user in allUsers)
         {
             if (user.Online)
@@ -227,7 +228,7 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    /// General refresh method it calls with invoke repeating, if the change must seen instant then call should hard coded.
+    /// General refresh method, it calls with invoke repeating
     /// E.g : LocateUserLocation()
     private void RefreshOnlineUsers()
     {

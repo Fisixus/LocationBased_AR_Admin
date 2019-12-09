@@ -171,8 +171,18 @@ public class SymbolManager : MonoBehaviour
 #endif
         {
             addSymbolMarker.SetActive(false);
-
+#if UNITY_EDITOR || UNITY_STANDALONE_WIN
             addSymbolPanel = Instantiate(addSymbolPanelPreb, Input.mousePosition, Quaternion.identity, canvas.transform);
+#elif (UNITY_IOS || UNITY_ANDROID) && !UNITY_EDITOR
+            
+            if (Input.touchCount == 1)
+                addSymbolPanel = Instantiate(addSymbolPanelPreb, Input.GetTouch(0).position, Quaternion.identity, canvas.transform);
+            else
+            {
+                Debug.Log("Add panel only opens with single touch!");
+                return;
+            }
+#endif
             addSymbolPanel.name = "AddSymbolPanel";
 
 

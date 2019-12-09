@@ -11,28 +11,28 @@ public class WebServiceManager : MonoBehaviour
     //USER SERVICES
     #region 
 
-    public const string GetAllUsersURI = "https://kctxqs0ws8.execute-api.eu-central-1.amazonaws.com/locationbasedAR/allusers";
+    public const string GetAllUsersURI = "https://k4im5wsp79.execute-api.eu-central-1.amazonaws.com/locationbasedAR/allusers";
 
-    public const string GetUserURI = "https://kctxqs0ws8.execute-api.eu-central-1.amazonaws.com/locationbasedAR/user";
+    public const string GetUserURI = "https://k4im5wsp79.execute-api.eu-central-1.amazonaws.com/locationbasedAR/user";
 
-    public const string AddUserURI = "https://kctxqs0ws8.execute-api.eu-central-1.amazonaws.com/locationbasedAR/adduser";
+    public const string AddUserURI = "https://k4im5wsp79.execute-api.eu-central-1.amazonaws.com/locationbasedAR/adduser";
 
-    public const string UpdateUserURI = "https://kctxqs0ws8.execute-api.eu-central-1.amazonaws.com/locationbasedAR/updateuser";
+    public const string UpdateUserURI = "https://k4im5wsp79.execute-api.eu-central-1.amazonaws.com/locationbasedAR/updateuser";
 
     #endregion
     //SYMBOL SERVICES 
     #region 
-    public const string GetSymbolURI = "https://c9bl26g5ji.execute-api.eu-central-1.amazonaws.com/locationbasedAR/symbol";
+    public const string GetSymbolURI = "https://ck549j35j6.execute-api.eu-central-1.amazonaws.com/locationbasedAR/symbol";
 
-    public const string GetSymbolsURI = "https://c9bl26g5ji.execute-api.eu-central-1.amazonaws.com/locationbasedAR/symbols";
+    public const string GetSymbolsURI = "https://ck549j35j6.execute-api.eu-central-1.amazonaws.com/locationbasedAR/symbols";
 
-    public const string GetAllSymbolsURI = "https://c9bl26g5ji.execute-api.eu-central-1.amazonaws.com/locationbasedAR/allsymbols";
+    public const string GetAllSymbolsURI = "https://ck549j35j6.execute-api.eu-central-1.amazonaws.com/locationbasedAR/allsymbols";
 
-    public const string AddSymbolURI = "https://c9bl26g5ji.execute-api.eu-central-1.amazonaws.com/locationbasedAR/addsymbol";
+    public const string AddSymbolURI = "https://ck549j35j6.execute-api.eu-central-1.amazonaws.com/locationbasedAR/addsymbol";
 
-    public const string UpdateSymbolURI = "https://c9bl26g5ji.execute-api.eu-central-1.amazonaws.com/locationbasedAR/updatesymbol";
+    public const string UpdateSymbolURI = "https://ck549j35j6.execute-api.eu-central-1.amazonaws.com/locationbasedAR/updatesymbol";
 
-    public const string DeleteSymbolURI = "https://c9bl26g5ji.execute-api.eu-central-1.amazonaws.com/locationbasedAR/deletesymbol";
+    public const string DeleteSymbolURI = "https://ck549j35j6.execute-api.eu-central-1.amazonaws.com/locationbasedAR/deletesymbol";
 
     #endregion
     string allUserData = "";
