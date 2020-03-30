@@ -1,4 +1,4 @@
-# LocationBased_AR_Admin
+# Location_Based_AR_Admin
 In this project main purpose is view all online users and their symbols on their locations on the map.
 
 ### Dependencies
@@ -12,7 +12,7 @@ This application build with Unity 2018.4.8. For connection between LocationBased
 
 - As a admin by clicking a online user, you can see this user's symbols and by clicking you can locate this symbol and see details of this symbol. 
 
-- As a admin, you can pan, rotate and zoom in the map(Naviga Mode).
+- As a admin, you can pan, rotate and zoom in the map(Navigate Mode).
 
 - As a admin, you can assign symbol to a user(Add Symbol Mode).
 
